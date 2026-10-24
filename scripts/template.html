@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>全球影视评分平台榜单汇总（电影 + 剧集）</title>
+<style>
+:root{
+  --bg:#f4f6f8; --card:#ffffff; --ink:#171b21; --muted:#6b7480; --line:#e4e8ee;
+  --brand:#1d4ed8; --brand2:#eaf1ff; --gold:#f0a020; --ok:#16a34a; --okbg:#e8f7ee;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px rgba(16,24,40,.06);
+  --hover:#f0f6ff; --ph:#eef1f5;
+}
+html[data-theme="dark"]{
+  --bg:#0e1116; --card:#161a21; --ink:#e7eaef; --muted:#99a2af; --line:#262c36;
+  --brand:#7aa7ff; --brand2:#18202c; --gold:#f5b34a; --ok:#3ecf8e; --okbg:#13261d;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  --hover:#1b212b; --ph:#1c222b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:14px/1.6 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--brand);text-decoration:none}
+.wrap{max-width:1500px;margin:0 auto;padding:18px 18px 70px}
+
+/* ---------- header ---------- */
+header.top{position:sticky;top:0;z-index:60;background:var(--card);border-bottom:1px solid var(--line);
+  padding:12px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header.top h1{font-size:19px;margin:0;letter-spacing:.2px}
+header.top .meta{font-size:12px;color:var(--muted);margin-top:2px}
+header.top .grow{flex:1}
+.ops{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;
+  padding:7px 12px;font-size:12.5px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--hover);border-color:var(--brand)}
+.prog{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.ring{width:38px;height:38px;transform:rotate(-90deg);flex:none}
+.rbg{fill:none;stroke:var(--ph);stroke-width:4.4}
+.rfg{fill:none;stroke:var(--ok);stroke-width:4.4;stroke-linecap:round;
+  stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .45s}
+.prog b{color:var(--ok);font-weight:700}
+.pbar{width:120px;height:7px;border-radius:6px;background:var(--ph);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;border-radius:6px;background:var(--ok);transition:width .3s}
+
+/* ---------- cards ---------- */
+section.card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;margin:16px 0;box-shadow:var(--shadow)}
+h2{font-size:15px;margin:0 0 10px;color:var(--brand);font-weight:700}
+h2 small{color:var(--muted);font-weight:400;font-size:12px;margin-left:8px}
+details{border-top:1px dashed var(--line);padding-top:10px;margin-top:10px}
+details summary{cursor:pointer;font-size:13.5px;font-weight:600;color:var(--ink);outline:none}
+details summary::marker{color:var(--brand)}
+.dbody{font-size:12.8px;color:var(--muted);line-height:1.75;padding:8px 2px 2px}
+.dbody b{color:var(--ink)}
+.dbody ul{margin:6px 0 6px 18px;padding:0}
+.dbody li{margin:3px 0}
+
+.stat{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.stat div{background:var(--brand2);border-radius:10px;padding:8px 14px;font-size:12.5px;color:var(--muted)}
+.stat div b{display:block;font-size:17px;color:var(--brand);font-weight:700}
+
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin-top:10px}
+.pitem{border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:var(--bg)}
+.pitem .ph{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pitem .nm{font-weight:700;font-size:13.5px;color:var(--ink)}
+.pitem .co{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:1px 8px;background:var(--card)}
+.pitem .kv{font-size:12px;color:var(--muted);margin-top:3px}
+.pitem .kv b{color:var(--ink);font-weight:600}
+.pitem a{font-size:11.5px;word-break:break-all}
+
+/* ---------- filter bar ---------- */
+.fbar{position:sticky;top:63px;z-index:50;background:var(--card);padding:8px 0 10px;border-bottom:1px solid var(--line)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:7px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:20px;
+  padding:5px 12px;font-size:12.5px;cursor:pointer;transition:.15s;white-space:nowrap}
+.chip:hover{border-color:var(--brand);color:var(--brand)}
+.chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.chip .co{opacity:.75;font-size:11px;margin-left:3px}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:0;background:var(--card);color:var(--muted);padding:6px 12px;font-size:12.5px;cursor:pointer}
+.seg button.on{background:var(--brand);color:#fff}
+input.q{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;
+  padding:7px 12px;font-size:13px;min-width:220px;outline:none}
+input.q:focus{border-color:var(--brand)}
+select{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:6px 10px;font-size:12.5px}
+.cnt{font-size:12.5px;color:var(--muted);margin:10px 2px}
+
+/* ---------- wall ---------- */
+.wall[hidden]{display:none!important}
+.twrap[hidden]{display:none!important}
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:13px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;
+  position:relative;transition:.18s;overflow:hidden}
+.item:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--brand)}
+.item.seen{border-color:var(--ok);background:var(--okbg)}
+.poster{display:block;position:relative;border-radius:9px;overflow:hidden;background:var(--ph);aspect-ratio:2/3}
+.poster img{width:100%;height:100%;object-fit:cover;display:block}
+.poster .noimg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:26px;font-weight:700;background:linear-gradient(135deg,var(--ph),var(--brand2))}
+.rk{position:absolute;left:6px;top:6px;background:rgba(0,0,0,.62);color:#fff;font-size:11px;
+  padding:1px 7px;border-radius:20px;backdrop-filter:blur(3px)}
+.watch{position:absolute;right:6px;top:6px;width:26px;height:26px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.85);background:rgba(0,0,0,.35);color:#fff;cursor:pointer;
+  font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;transition:.15s}
+.watch:hover{background:rgba(0,0,0,.6)}
+.item.seen .watch{background:var(--ok);border-color:var(--ok)}
+.tt{font-size:13px;font-weight:700;margin-top:7px;line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ot{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt{font-size:11.5px;color:var(--muted);margin-top:3px}
+.mt .sc{color:var(--gold);font-weight:700}
+.mine{margin-top:6px;border-top:1px dashed var(--line);padding-top:6px;display:flex;flex-direction:column;gap:4px}
+.stars{display:inline-flex;gap:1px;cursor:pointer;font-size:14px;line-height:1;user-select:none}
+.st{color:var(--line);font-style:normal}
+.st.f{color:var(--gold)}
+.st.h{background:linear-gradient(90deg,var(--gold) 50%,var(--line) 50%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rv{font-size:11px;color:var(--muted);margin-left:5px}
+input.nt{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:7px;
+  padding:4px 7px;font-size:11.5px;outline:none}
+input.nt:focus{border-color:var(--brand);background:var(--card)}
+
+/* ---------- table ---------- */
+.twrap{overflow:auto;max-height:74vh;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;background:var(--card)}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:middle}
+th{background:var(--brand2);color:var(--brand);position:sticky;top:0;z-index:2;white-space:nowrap;cursor:pointer;font-weight:700}
+th:hover{text-decoration:underline}
+th.na{cursor:default}
+td.num,th.num{text-align:right;white-space:nowrap}
+tbody tr:hover{background:var(--hover)}
+tbody tr.seen{background:var(--okbg)}
+.thumb{width:34px;height:50px;object-fit:cover;border-radius:5px;background:var(--ph)}
+.tname{font-weight:700;font-size:12.5px}
+.tsub{font-size:11px;color:var(--muted)}
+.mini{display:flex;flex-direction:column;gap:3px;min-width:130px}
+.w2{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:var(--card);
+  color:var(--muted);cursor:pointer;font-size:12px;line-height:1;padding:0}
+.w2.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.foot{font-size:11.5px;color:var(--muted);margin-top:12px;line-height:1.8}
+/* ---------- 移动端适配 ---------- */
+@media(max-width:820px){
+  header.top{padding:9px 12px;gap:8px;flex-wrap:wrap}
+  header.top h1{font-size:15.5px}
+  header.top .meta{font-size:11px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  header.top .grow{display:none}
+  .ops{gap:6px;width:100%}
+  .btn{padding:6px 9px;font-size:12px}
+  .ring{width:30px;height:30px}
+  .prog{font-size:11.5px}
+  .wrap{padding:12px 10px 60px}
+  section.card{padding:12px 11px;border-radius:12px;margin:12px 0}
+  .fbar{position:static;padding:4px 0 8px}
+  .row{gap:6px}
+  input.q{min-width:0;flex:1 1 140px;padding:7px 10px}
+  .chip{padding:5px 10px;font-size:12px}
+  .pgrid{grid-template-columns:1fr}
+  .stat div{padding:7px 11px;font-size:12px}
+  .wall{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .item{padding:6px;border-radius:11px}
+  .tt{font-size:12px;margin-top:5px}
+  .ot{font-size:10.5px}
+  .mt{font-size:10.5px}
+  .watch{width:30px;height:30px;font-size:15px}
+  .stars{font-size:17px}
+  input.nt{font-size:12px;padding:5px 6px}
+  .twrap{max-height:none;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{font-size:12px;min-width:720px}
+  .thumb{width:28px;height:40px}
+  .foot{font-size:11px}
+}
+@media(max-width:400px){
+  .wall{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .tt{font-size:11.5px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>全球影视评分平台榜单汇总<small>电影 + 剧集</small></h1>
+    <div class="meta" id="sub">__SUB__</div>
+  </div>
+  <div class="grow"></div>
+  <div class="ops">
+    <div class="prog">
+      <svg class="ring" viewBox="0 0 36 36" aria-hidden="true">
+        <circle class="rbg" cx="18" cy="18" r="15.9" pathLength="100"></circle>
+        <circle class="rfg" id="ringfg" cx="18" cy="18" r="15.9" pathLength="100"></circle>
+      </svg>
+      <span id="ptxt">已看 0 / __TOTAL__</span>
+    </div>
+    <button class="btn" id="btnExp">导出标记备份</button>
+    <button class="btn" id="btnImp">导入备份</button>
+    <input type="file" id="fileImp" accept="application/json" hidden>
+    <button class="btn" id="btnClr">清空标记</button>
+    <button class="btn" id="btnThm">🌙 夜间</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section class="card">
+  <h2>一、汇总说明 <small>平台清单 · 所属国家 · 评分制差异</small></h2>
+  <div class="stat" id="stat"></div>
+  <details open>
+    <summary>平台清单与榜单特点（点击平台卡片可直接筛选该平台榜单）</summary>
+    <div class="dbody" style="padding-bottom:6px">所属国家＝平台运营主体所在国家/地区。点击任意卡片即可跳到下方列表并只看该平台。</div>
+    <div class="pgrid" id="pg"></div>
+  </details>
+  <details>
+    <summary>数据获取方式 · 数据性质区分 · 评分制差异 · 已知局限</summary>
+    <div class="dbody" id="notes">__NOTES__</div>
+  </details>
+</section>
+
+<section class="card">
+  <h2>二、榜单浏览 <small>海报墙 / 表格 · 可标记已看 · 可记我的评分与短评</small></h2>
+  <div class="fbar">
+    <div class="row">
+      <div class="chips" id="cType"></div>
+      <div class="seg" id="segSeen"></div>
+      <input class="q" id="q" placeholder="搜索：片名 / 译名 / 地区 / 年份 / 平台…">
+      <select id="sortsel"></select>
+      <button class="btn" id="btnAsc">↑ 升序</button>
+      <label class="chip" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="chkDedup" style="margin:0"> 跨平台去重
+      </label>
+      <div class="seg" id="segView"></div>
+    </div>
+    <div class="chips" id="cPlat"></div>
+  </div>
+  <div class="cnt" id="cnt"></div>
+  <div class="wall" id="wall"></div>
+  <div class="twrap" id="twrap" hidden><table><thead><tr id="th"></tr></thead><tbody id="tb"></tbody></table></div>
+  <div class="foot">
+    海报来自各作品公开资料图（IMDb 官方图片服务），仅作辨识辅助，加载失败会显示占位色块；点击海报可跳转该平台作品页。
+    「折算/10」＝把百分制÷10、5 分制×2 的线性换算，仅便于跨平台排序浏览，不代表各平台分数等价。
+    所有「已看 / 我的评分 / 短评」只保存在你本机浏览器（localStorage），可随时导出备份。
+  </div>
+</section>
+
+</div>
+
+<script>
+const D = __DATA__;
+const PL = __PLAT__;
+const LS = 'filmlist_marks_v1';
+let S = {};
+try{ S = JSON.parse(localStorage.getItem(LS) || '{}'); }catch(e){ S = {}; }
+let saveT = null;
+function save(){ clearTimeout(saveT); saveT = setTimeout(()=>{ try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){} }, 250); }
+/* 跨平台同步：同一部作品（同名同类型）在所有平台共用一份「已看 / 评分 / 短评」 */
+const GM = {};
+D.forEach(d=>{ GM[d.id] = (d.k === '剧集' ? 't|' : 'm|') + normKey(d); });
+function rec(id){ const g = GM[id] || id; return S[g] || (S[g] = {w:0, r:0, n:''}); }
+
+const F = {type:'全部', plat:'全部', seen:'全部', q:'', sort:'排名', asc:true, dedup:false, view:'wall'};
+const SORTS = ['排名','上映年份','平台评分','折算/10','评分人数','我的评分','片名原文'];
+
+/* ---------- static blocks ---------- */
+document.getElementById('stat').innerHTML = __STAT__;
+document.getElementById('pg').innerHTML = PL.map(p =>
+ `<div class="pitem" data-p="${p.p}" data-k="${p.k}">
+   <div class="ph"><span class="nm">${p.n}</span><span class="co">${p.co}</span>
+     <span class="co">${p.k}</span></div>
+   <div class="kv"><b>榜单：</b>${p.ch}</div>
+   <div class="kv"><b>评分制：</b>${p.sc} ／ <b>收录：</b>${p.cnt}</div>
+   <div class="kv"><b>评分来源：</b>${p.src}</div>
+   <div class="kv"><b>特点：</b>${p.f}</div>
+   <div class="kv"><b>榜单页：</b><a href="${p.u}" target="_blank" rel="noreferrer">${p.u}</a></div>
+ </div>`).join('');
+[...document.querySelectorAll('.pitem')].forEach(el=>el.onclick=e=>{
+  if(e.target.tagName === 'A') return;
+  F.type = el.dataset.k; F.plat = el.dataset.p; F.view = 'wall';
+  document.getElementById('q').value = '';
+  render(); document.getElementById('wall').scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+/* ---------- controls ---------- */
+const cType = document.getElementById('cType'), cPlat = document.getElementById('cPlat');
+function drawChips(){
+  cType.innerHTML = ['全部','电影','剧集'].map(t=>`<span class="chip ${F.type===t?'on':''}" data-t="${t}">${t}</span>`).join('');
+  [...cType.children].forEach(c=>c.onclick=()=>{ F.type=c.dataset.t; F.plat='全部'; render(); });
+  const list = [...new Set(D.filter(d=>F.type==='全部'||d.k===F.type).map(d=>d.p))];
+  if(F.plat!=='全部' && !list.includes(F.plat)) F.plat='全部';
+  cPlat.innerHTML = ['全部',...list].map(p=>{
+     const m = PL.find(x=>x.p===p && (F.type==='全部'||x.k===F.type));
+     const co = m ? `<span class="co">${m.co}</span>` : '';
+     return `<span class="chip ${F.plat===p?'on':''}" data-p="${p}">${p}${co}</span>`;
+  }).join('');
+  [...cPlat.children].forEach(c=>c.onclick=()=>{ F.plat=c.dataset.p; render(); });
+}
+const segSeen = document.getElementById('segSeen');
+segSeen.innerHTML = ['全部','未看','已看'].map(v=>`<button data-v="${v}">${v}</button>`).join('');
+[...segSeen.children].forEach(b=>b.onclick=()=>{ F.seen=b.dataset.v; render(); });
+const segView = document.getElementById('segView');
+segView.innerHTML = [['wall','海报墙'],['table','表格']].map(v=>`<button data-v="${v[0]}">${v[1]}</button>`).join('');
+[...segView.children].forEach(b=>b.onclick=()=>{ F.view=b.dataset.v; render(); });
+const ss = document.getElementById('sortsel');
+ss.innerHTML = SORTS.map(s=>`<option value="${s}" ${s===F.sort?'selected':''}>${s}</option>`).join('');
+ss.onchange = ()=>{ F.sort = ss.value; render(); };
+document.getElementById('btnAsc').onclick = e=>{ F.asc = !F.asc; e.target.textContent = F.asc ? '↑ 升序' : '↓ 降序'; render(); };
+document.getElementById('chkDedup').onchange = e=>{ F.dedup = e.target.checked; render(); };
+document.getElementById('q').oninput = e=>{ F.q = e.target.value.trim().toLowerCase(); render(); };
+
+/* ---------- star widget ---------- */
+function starsHTML(id, v){
+  let h = `<span class="stars" data-id="${id}">`;
+  for(let i=1;i<=5;i++){
+    const full = v >= i*2, half = v === i*2-1;
+    h += `<i class="st ${full?'f':(half?'h':'')}" data-i="${i}">★</i>`;
+  }
+  return h + `</span><span class="rv">${v?v+'/10':'—'}</span>`;
+}
+function paintStars(box, v){
+  [...box.querySelectorAll('.st')].forEach(s=>{
+    const i = +s.dataset.i;
+    s.className = 'st ' + (v >= i*2 ? 'f' : (v === i*2-1 ? 'h' : ''));
+  });
+  const rv = box.parentElement.querySelector('.rv');
+  if(rv) rv.textContent = v ? v+'/10' : '—';
+}
+function starVal(starEl, clientX){
+  const r = starEl.getBoundingClientRect();
+  const i = +starEl.dataset.i;
+  return (clientX - r.left) < r.width/2 ? i*2-1 : i*2;
+}
+function bindStars(root){
+  root.querySelectorAll('.stars').forEach(box=>{
+    const id = box.dataset.id;
+    box.onmousemove = e=>{ const st = e.target.closest('.st'); if(st) paintStars(box, starVal(st, e.clientX)); };
+    box.onmouseleave = ()=> paintStars(box, rec(id).r || 0);
+    box.onclick = e=>{
+      const st = e.target.closest('.st'); if(!st) return;
+      const v = starVal(st, e.clientX);
+      const r = rec(id);
+      r.r = (r.r === v) ? 0 : v;
+      paintStars(box, r.r); save(); markProgress(); if(F.sort==='我的评分') render();
+    };
+  });
+}
+
+/* ---------- filter / sort ---------- */
+function normKey(d){ return (d.cn && d.cn !== d.t ? d.cn : d.t).replace(/\s+/g,'').toLowerCase(); }
+function filtered(){
+  let list = D.filter(d=>(F.type==='全部'||d.k===F.type) && (F.plat==='全部'||d.p===F.plat));
+  if(F.seen==='已看') list = list.filter(d=>rec(d.id).w);
+  if(F.seen==='未看') list = list.filter(d=>!rec(d.id).w);
+  if(F.q) list = list.filter(d=>(d.t+' '+d.cn+' '+d.p+' '+d.y+' '+d.reg+' '+d.lang+' '+d.ch).toLowerCase().includes(F.q));
+  if(F.dedup){
+    const best = new Map();
+    list.forEach(d=>{ const k = d.k[0] + normKey(d); const o = best.get(k);
+      if(!o || (d.n10||0) > (o.n10||0)) best.set(k, d); });
+    list = [...best.values()];
+  }
+  const dir = F.asc ? 1 : -1;
+  const num = {'排名':1,'上映年份':1,'平台评分':1,'折算/10':1,'评分人数':1,'我的评分':1};
+  list.sort((a,b)=>{
+    let x, y;
+    switch(F.sort){
+      case '排名': x=a.r; y=b.r; break;
+      case '上映年份': x=+String(a.y||0).slice(0,4); y=+String(b.y||0).slice(0,4); break;
+      case '平台评分': x=parseFloat(a.sc)||0; y=parseFloat(b.sc)||0; break;
+      case '折算/10': x=a.n10||0; y=b.n10||0; break;
+      case '评分人数': x=a.v||0; y=b.v||0; break;
+      case '我的评分': x=rec(a.id).r||0; y=rec(b.id).r||0; break;
+      default: x=normKey(a); y=normKey(b); return x<y?-dir:(x>y?dir:0);
+    }
+    if(x<y) return -dir; if(x>y) return dir;
+    return a.r - b.r;
+  });
+  return list;
+}
+
+/* ---------- render ---------- */
+function fmtV(v){ return v ? Number(v).toLocaleString('en-US') : '—'; }
+function render(){
+  drawChips();
+  [...segSeen.children].forEach(b=>b.classList.toggle('on', b.dataset.v===F.seen));
+  [...segView.children].forEach(b=>b.classList.toggle('on', b.dataset.v===F.view));
+  const list = filtered();
+  const seen = list.filter(d=>rec(d.id).w).length;
+  document.getElementById('cnt').textContent =
+    `共 ${list.length} 条　·　已看 ${seen}（${list.length?Math.round(seen/list.length*100):0}%）　·　排序：${F.sort} ${F.asc?'↑':'↓'}${F.dedup?'　·　已跨平台去重':''}`;
+  const wall = document.getElementById('wall'), tw = document.getElementById('twrap');
+  wall.hidden = F.view !== 'wall'; tw.hidden = F.view !== 'table';
+  if(F.view === 'wall'){
+    wall.innerHTML = list.map(d=>{
+      const r = rec(d.id);
+      const img = d.img ? `<img loading="lazy" src="${d.img}" alt="" onerror="this.style.display='none'">`
+                        : `<div class="noimg">${(d.cn||d.t||'?').slice(0,1)}</div>`;
+      return `<div class="item ${r.w?'seen':''}" data-id="${d.id}">
+        <a class="poster" href="${d.u}" target="_blank" rel="noreferrer" title="打开 ${d.p} 作品页">
+          ${img}<span class="rk">#${d.r}</span>
+        </a>
+        <button class="watch" data-id="${d.id}" title="标记已看 / 取消">${r.w?'✓':''}</button>
+        <div class="tt" title="${d.cn||d.t}">${d.cn||d.t}</div>
+        <div class="ot" title="${d.t}">${d.t}</div>
+        <div class="mt">${d.y||'—'} · ${d.reg||'—'} · <span class="sc">${d.p} ${d.sc}</span>${d.v?' · '+fmtV(d.v)+'人':''}</div>
+        <div class="mine">${starsHTML(d.id, r.r||0)}
+          <input class="nt" data-id="${d.id}" placeholder="我的评分 / 短评…" value="${(r.n||'').replace(/"/g,'&quot;')}">
+        </div>
+      </div>`;
+    }).join('');
+    bindStars(wall);
+  }else{
+    document.getElementById('th').innerHTML =
+      ['','排名','','片名 / 译名','平台','年份','地区 / 语言','平台评分','折算/10','评分人数','我的评分与短评','链接']
+      .map((h,i)=>['','排名','平台评分','折算/10','评分人数','我的评分与短评'].includes(h)
+        ? `<th class="num" data-s="${h==='折算/10'?'折算/10':(h==='我的评分与短评'?'我的评分':h)}">${h||''}</th>`
+        : `<th class="na">${h}</th>`).join('');
+    document.getElementById('tb').innerHTML = list.map(d=>{
+      const r = rec(d.id);
+      const thumb = d.img ? `<img class="thumb" loading="lazy" src="${d.img}" alt="" onerror="this.style.display='none'">` : `<div class="thumb"></div>`;
+      return `<tr class="${r.w?'seen':''}" data-id="${d.id}">
+        <td><button class="w2 ${r.w?'on':''}" data-id="${d.id}" title="已看">${r.w?'✓':''}</button></td>
+        <td class="num">${d.r}</td>
+        <td>${thumb}</td>
+        <td><div class="tname">${d.cn||d.t}</div><div class="tsub">${d.t}</div></td>
+        <td>${d.p}</td>
+        <td>${d.y||'—'}</td>
+        <td>${d.reg||'—'} / ${d.lang||'—'}</td>
+        <td class="num">${d.sc}</td>
+        <td class="num">${d.n10||'—'}</td>
+        <td class="num">${fmtV(d.v)}</td>
+        <td><div class="mini">${starsHTML(d.id, r.r||0)}
+          <input class="nt" data-id="${d.id}" placeholder="短评…" value="${(r.n||'').replace(/"/g,'&quot;')}"></div></td>
+        <td><a href="${d.u}" target="_blank" rel="noreferrer">${d.p} ↗</a></td>
+      </tr>`;
+    }).join('');
+    bindStars(document.getElementById('tb'));
+    [...document.getElementById('th').children].forEach(h=>{
+      if(!h.dataset.s) return;
+      h.onclick = ()=>{ F.sort = h.dataset.s; ss.value = F.sort; F.asc = !F.asc; render(); };
+    });
+  }
+  markProgress();
+}
+document.addEventListener('click', e=>{
+  const w = e.target.closest('.watch, .w2');
+  if(w){ const r = rec(w.dataset.id); r.w = r.w ? 0 : 1; save(); render(); }
+});
+document.addEventListener('input', e=>{
+  const t = e.target;
+  if(t.classList.contains('nt')){ rec(t.dataset.id).n = t.value; save(); }
+});
+function markProgress(){
+  const seen = D.filter(d=>rec(d.id).w).length;
+  const pct = D.length ? seen / D.length * 100 : 0;
+  const fg = document.getElementById('ringfg');
+  if(fg) fg.style.strokeDashoffset = (100 - pct).toFixed(2);
+  document.getElementById('ptxt').innerHTML =
+    `已看 ${seen} / ${D.length}<br><b>${pct < 10 ? pct.toFixed(1) : Math.round(pct)}%</b>`;
+}
+
+/* ---------- backup / theme ---------- */
+document.getElementById('btnExp').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(S,null,1)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = '我的观影标记备份.json'; a.click();
+};
+document.getElementById('btnImp').onclick = ()=> document.getElementById('fileImp').click();
+document.getElementById('fileImp').onchange = e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = ()=>{ try{ Object.assign(S, JSON.parse(rd.result)); save(); render(); }catch(err){ alert('文件格式不正确'); } };
+  rd.readAsText(f); e.target.value = '';
+};
+document.getElementById('btnClr').onclick = ()=>{
+  if(confirm('确定清空所有「已看 / 评分 / 短评」标记？该操作不可撤销。')){ S = {}; save(); render(); }
+};
+const thm = document.getElementById('btnThm');
+function setThm(t){ document.documentElement.dataset.theme = t; localStorage.setItem('filmlist_theme', t);
+  thm.textContent = t === 'dark' ? '☀️ 日间' : '🌙 夜间'; }
+thm.onclick = ()=> setThm(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+setThm(localStorage.getItem('filmlist_theme') || 'light');
+
+render();
+</script>
+</body>
+</html>
