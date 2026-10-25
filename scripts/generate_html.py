@@ -23,6 +23,20 @@ rows = movie_rows + tv_rows
 rows = [r for r in rows if not (r['内容类型'] == '剧集' and str(r['平台']).startswith('豆瓣'))]
 
 POSTERS = json.load(open(os.path.join(DATA, 'poster_cache.json'), encoding='utf-8'))
+
+# TMDB 各国/地区高分榜（可选数据，由 github/fetch_tmdb.js 抓取后放进 data/tmdb_rows.json）
+TMDB_FILE = os.path.join(DATA, 'tmdb_rows.json')
+tmdb_rows, TMDB_META = [], []
+if os.path.exists(TMDB_FILE):
+    _tj = json.load(open(TMDB_FILE, encoding='utf-8'))
+    TMDB_META = _tj.get('meta', [])
+    for r in _tj.get('rows', []):
+        tmdb_rows.append(dict(内容类型=r['k'], 平台=r['p'], 榜单=r['ch'], 排名=r['r'], 片名原文=r['t'],
+                              中文译名=r['cn'], 原始语言=r['lang'], 制片地区=r['reg'], 上映年份=str(r['y']),
+                              平台评分=str(r['sc']), 评分人数=r['v'], 作品链接=r['u'], 评分制=r['sca'],
+                              数据性质=r['nat'], 备注=r['rm'], _img=r.get('img', '')))
+    print('TMDB 国别榜：%d 个国家/地区，%d 条' % (len(TMDB_META), len(tmdb_rows)))
+rows = rows + tmdb_rows
 FETCH_TIME = "2026-10-24 19:40 – 21:20（UTC+8）"
 
 # ---------------- 平台：短名 / 所属国家 ----------------
@@ -96,8 +110,23 @@ PLATFORMS = [
       u='https://www.allocine.fr/series/meilleures/', sc='5 分制（观众评分）', src='法国观众打分（Spectateurs）',
       cnt='50 / 300', f='法语区观众口味的剧集总榜，含法剧与美英剧（以法语 / 本地化片名展示）。'),
 ]
+# ---------------- TMDB 国别榜：补平台卡片 ----------------
+for m in TMDB_META:
+    co = m['cn']
+    name = 'TMDB·' + co
+    kind = m.get('kind', '电影')
+    COUNTRY[name] = (co, 'TMDB 数据源')
+    PLATFORMS.append(dict(
+        k=kind, p=name, ch=co + ('剧集高分榜' if kind == '剧集' else '影片高分榜'),
+        u='https://www.themoviedb.org/' + ('tv' if kind == '剧集' else 'movie') +
+          '?language=zh-CN&with_origin_country=' + m['code'],
+        sc='10 分制', src='TMDB 注册用户打分（平均分）', cnt='%d / 全站' % m['n'],
+        f='数据源 TMDB（美国，全球用户评分）：筛选「制片国家＝%s、评分人数≥%d」后按平均分降序取前 %d 条。'
+          '代表全球观众对该国%s的评价，不等同于该国本土观众口味；中文译名取自 TMDB 中文站。'
+          % (co, m['min'], m['n'], '剧集' if kind == '剧集' else '影片')))
+
 for p in PLATFORMS:
-    co, note = COUNTRY[p['p']]
+    co, note = COUNTRY.get(p['p'], (p['p'], ''))
     p['co'] = co
     p['n'] = f"{p['p']}（{co}）"
     p['org'] = note
@@ -125,7 +154,7 @@ data = []
 for r in rows:
     p = SHORT.get(str(r['平台']), str(r['平台']))
     _id = '|'.join([r['内容类型'], str(r['平台']), str(r['片名原文']), str(r.get('上映年份') or '')])
-    img = (POSTERS.get(_id) or {}).get('img')
+    img = (POSTERS.get(_id) or {}).get('img') or r.get('_img', '')
     if img:
         N_IMG += 1
     try:
