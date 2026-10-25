@@ -93,6 +93,10 @@ scripts/
   fetch_posters.py              纯 HTTP 抓取封面（IMDb 官方图片服务）
   fetch_tmdb.js                 TMDB 国别榜抓取（需自备 api key，写到 .tmdb_key.txt）
   topup_tmdb.js                 条数不足 50 的国别榜降门槛补抓
+  build_dataset2.py             电影榜单原始数据构建
+  build_tv_dataset.py           剧集榜单原始数据构建
+  mapping.py / mapping_tv.py    译名、语言、地区、评分折算映射
+gh_push_contents.py             用 GitHub contents API 推送本仓库（令牌放 .gh_token.txt）
 ```
 
 重新生成：`cd scripts && python generate_html.py`（会同时输出到仓库根目录和桌面）
