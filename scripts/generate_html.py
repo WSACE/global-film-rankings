@@ -170,26 +170,38 @@ for r in rows:
 plat = [dict(k=p['k'], p=p['p'], n=p['n'], co=p['co'], org=p['org'], ch=p['ch'], sc=p['sc'],
              src=p['src'], cnt=p['cnt'], f=p['f'], u=p['u']) for p in PLATFORMS]
 
+NP_MOVIE = len({p['p'] for p in PLATFORMS if p['k'] == '电影'})
+NP_TV = len({p['p'] for p in PLATFORMS if p['k'] == '剧集'})
+N_COUNTRY = len({p['co'] for p in PLATFORMS})
 STAT = json.dumps([
     ('收录条目', f'{TOTAL}'), ('电影', f'{N_MOVIE}'), ('剧集', f'{N_TV}'),
-    ('电影平台', '8 个'), ('剧集平台', '7 个'),
+    ('电影榜单', f'{NP_MOVIE} 个'), ('剧集榜单', f'{NP_TV} 个'), ('覆盖国家/地区', f'{N_COUNTRY}'),
     ('评分制', '10 分制 / 百分制 / 5 分制'), ('封面命中', f'{N_IMG} / {TOTAL}'),
 ], ensure_ascii=False)
 STAT_HTML = ''.join(f'<div><b>{b}</b>{a}</div>' for a, b in json.loads(STAT))
+
+# TMDB 国别榜相关说明：仅在真的接入了该数据时才出现，避免回退后残留
+_T1 = ('TMDB 通过其官方 API 按「制片国家 + 评分人数门槛 + 平均分降序」生成各国 / 地区影片榜与剧集榜'
+       '（TMDB·俄罗斯、TMDB·德国 …），中文片名与封面直接取自 TMDB 中文站与官方图床。') if TMDB_META else ''
+_T2 = '、TMDB（各国 / 地区影片榜与剧集榜）' if TMDB_META else ''
+_T3 = ('<li><b>TMDB 国别榜的口径要特别注意</b>：它是「制片国家＝该国 + 全球 TMDB 用户评分」筛出来的高分作品，'
+       '<b>代表全球观众对该国作品的评分，不等于该国本土观众的口味</b>；各国本土平台（俄罗斯 Кинопоиск、'
+       '日本 Filmarks、德国 Moviepilot、西班牙 FilmAffinity 等）需要登录或在本机网络下被拦截，故未收录。</li>'
+       ) if TMDB_META else ''
 
 NOTES = f"""
 <h4 style="margin:10px 0 4px;color:var(--ink)">数据获取方式</h4>
 <ul>
 <li><b>榜单正文</b>：抓取时间 {FETCH_TIME}。静态 HTTP 抓取（豆瓣 Top 250、MyAnimeList、MyDramaList、AlloCiné 榜单页与详情页）；
 对有人机验证 / 纯前端渲染的站点（IMDb、Metacritic、Rotten Tomatoes 编辑部榜、Letterboxd）用真实浏览器渲染后读取页面内嵌数据。</li>
-<li><b>官方公开 API</b>：AniList 通过其官方 GraphQL 接口（graphql.anilist.co）按 averageScore 降序实时查询，电影与 TV 各 50 条。</li>
+<li><b>官方公开 API</b>：AniList 通过其官方 GraphQL 接口（graphql.anilist.co）按 averageScore 降序实时查询，电影与 TV 各 50 条；{_T1}</li>
 <li><b>封面图</b>：通过 IMDb 官方图片服务按「片名 + 年份 + 类型」匹配，命中 {N_IMG}/{TOTAL} 条；标题必须实质匹配（同词 / 包含 / 年份吻合）才采用，未命中显示占位色块，不使用猜测图。</li>
 <li><b>工具</b>：Python（urllib / JSON 解析 / 并发抓取）、Playwright + Edge（受限站点渲染）、openpyxl 与自写模板生成交付文件。</li>
 </ul>
 <h4 style="margin:12px 0 4px;color:var(--ink)">数据性质区分</h4>
 <ul>
 <li><b>官方榜单原文</b>：豆瓣、IMDb、Rotten Tomatoes、Metacritic、Letterboxd、MyDramaList、MyAnimeList、AlloCiné —— 排名 / 片名 / 评分 / 评分人数直接来自榜单页或官方接口。</li>
-<li><b>官方公开 API 实时查询</b>：AniList（GraphQL）。</li>
+<li><b>官方公开 API 实时查询</b>：AniList（GraphQL）{_T2}。</li>
 <li><b>人工整理 / 翻译</b>：① 中文译名；② 原始语言与制片地区；③ 「折算/10」列（百分制÷10、5 分制×2 的线性换算，仅便于跨平台排序，<b>不等于各平台分数等价</b>）。</li>
 </ul>
 <h4 style="margin:12px 0 4px;color:var(--ink)">评分制差异</h4>
@@ -207,6 +219,8 @@ NOTES = f"""
 <li>Letterboxd 不对未登录用户开放「全站按评分排序」浏览页，电影部分采用其官方账号维护的 Top 500；该平台不提供剧集榜单。</li>
 <li>Metacritic 榜单页标注北美上映 / 首播日期，部分老片与首映年份不同。MyDramaList 榜单页未公开评分人数，该列留空。</li>
 <li>所有榜单均为「全时段总榜」类（按评分 / 影评排序），不收录年度榜、周榜等时效性榜单。</li>
+{_T3}
+<li>朝鲜等国家 / 地区不存在公开评分数据（无民用互联网评分平台），因此无法收录，也不会编造。</li>
 </ul>
 """
 
